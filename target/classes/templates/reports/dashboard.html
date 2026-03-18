@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head>
+    <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Reports — Student Management System</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+</head>
+<body class="app-body">
+    <div th:replace="~{fragments/navbar :: navbar}"></div>
+    <div class="container-fluid px-4 py-4">
+        <h4 class="fw-bold mb-4"><i class="bi bi-graph-up-arrow me-2 text-danger"></i>Reports Dashboard</h4>
+
+        <!-- Summary Stats -->
+        <div class="row g-4 mb-4">
+            <div class="col-md-3">
+                <div class="card border-0 shadow-sm text-center py-4">
+                    <i class="bi bi-people-fill text-primary fs-2 d-block mb-2"></i>
+                    <small class="text-muted">Total Students</small>
+                    <h3 class="fw-bold" th:text="${totalStudents}">0</h3>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card border-0 shadow-sm text-center py-4">
+                    <i class="bi bi-megaphone-fill text-info fs-2 d-block mb-2"></i>
+                    <small class="text-muted">Total Notices</small>
+                    <h3 class="fw-bold" th:text="${totalNotices}">0</h3>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card border-0 shadow-sm text-center py-4">
+                    <i class="bi bi-currency-rupee text-success fs-2 d-block mb-2"></i>
+                    <small class="text-muted">Fee Collected</small>
+                    <h3 class="fw-bold text-success">₹<span th:text="${totalFeeCollected}">0</span></h3>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card border-0 shadow-sm text-center py-4">
+                    <i class="bi bi-exclamation-triangle-fill text-danger fs-2 d-block mb-2"></i>
+                    <small class="text-muted">Fee Pending</small>
+                    <h3 class="fw-bold text-danger">₹<span th:text="${totalFeePending}">0</span></h3>
+                </div>
+            </div>
+        </div>
+
+        <!-- Attendance Alert -->
+        <div class="alert alert-warning d-flex align-items-center gap-2 mb-4">
+            <i class="bi bi-exclamation-triangle-fill fs-4"></i>
+            <div>
+                <strong th:text="${belowAttendance}">0</strong> student(s) have attendance below 75%.
+            </div>
+        </div>
+
+        <div class="row g-4">
+            <!-- Top 5 by Marks -->
+            <div class="col-md-6">
+                <div class="card border-0 shadow-sm">
+                    <div class="card-header bg-transparent fw-semibold"><i class="bi bi-trophy-fill me-2 text-warning"></i>Top 5 Students by Marks</div>
+                    <div class="card-body p-0">
+                        <table class="table table-striped table-hover mb-0">
+                            <thead><tr><th>#</th><th>Name</th><th>Roll No</th><th>Avg %</th></tr></thead>
+                            <tbody>
+                                <tr th:each="s, stat : ${topStudents}">
+                                    <td th:text="${stat.index + 1}"></td>
+                                    <td th:text="${s['studentName']}"></td>
+                                    <td th:text="${s['rollNo']}"></td>
+                                    <td class="fw-bold text-success" th:text="${s['avgPercentage'] + '%'}"></td>
+                                </tr>
+                                <tr th:if="${#lists.isEmpty(topStudents)}"><td colspan="4" class="text-center text-muted py-3">No data.</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+            <!-- Bottom 5 by Attendance -->
+            <div class="col-md-6">
+                <div class="card border-0 shadow-sm">
+                    <div class="card-header bg-transparent fw-semibold"><i class="bi bi-arrow-down-circle-fill me-2 text-danger"></i>Bottom 5 Students by Attendance</div>
+                    <div class="card-body p-0">
+                        <table class="table table-striped table-hover mb-0">
+                            <thead><tr><th>#</th><th>Name</th><th>Roll No</th><th>Attendance %</th></tr></thead>
+                            <tbody>
+                                <tr th:each="s, stat : ${bottomAttendance}">
+                                    <td th:text="${stat.index + 1}"></td>
+                                    <td th:text="${s['studentName']}"></td>
+                                    <td th:text="${s['rollNo']}"></td>
+                                    <td class="fw-bold text-danger" th:text="${s['attendancePercentage'] + '%'}"></td>
+                                </tr>
+                                <tr th:if="${#lists.isEmpty(bottomAttendance)}"><td colspan="4" class="text-center text-muted py-3">No data.</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <footer class="text-center py-3 text-muted small border-top mt-4">© 2025 Student Management System</footer>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

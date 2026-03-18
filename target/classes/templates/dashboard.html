@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard — Student Management System</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+</head>
+<body class="app-body">
+
+    <!-- Navbar -->
+    <div th:replace="~{fragments/navbar :: navbar}"></div>
+
+    <!-- Main Content -->
+    <div class="container-fluid px-4 py-4">
+
+        <!-- Flash Messages -->
+        <div th:if="${successMessage}" class="alert alert-success alert-dismissible fade show" role="alert">
+            <i class="bi bi-check-circle-fill me-2"></i><span th:text="${successMessage}"></span>
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+        <div th:if="${errorMessage}" class="alert alert-danger alert-dismissible fade show" role="alert">
+            <i class="bi bi-exclamation-triangle-fill me-2"></i><span th:text="${errorMessage}"></span>
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+
+        <!-- Welcome Banner -->
+        <div class="welcome-banner p-4 mb-4 rounded-3">
+            <h4 class="fw-bold mb-1">Welcome back, <span th:text="${username}"></span>! 👋</h4>
+            <p class="mb-0 text-muted">You are logged in as <strong th:text="${role}"></strong>.</p>
+        </div>
+
+        <!-- Stats Cards -->
+        <div class="row g-4 mb-4">
+            <div class="col-md-4">
+                <div class="stat-card card h-100 border-0 shadow-sm">
+                    <div class="card-body d-flex align-items-center gap-3">
+                        <div class="stat-icon bg-primary-soft"><i class="bi bi-people-fill text-primary fs-3"></i></div>
+                        <div>
+                            <p class="text-muted mb-0 small">Total Students</p>
+                            <h3 class="fw-bold mb-0" th:text="${totalStudents}">0</h3>
+                        </div>
+                    </div>
+                    <div class="card-footer bg-transparent border-0">
+                        <a th:href="@{/students}" class="btn btn-primary btn-sm w-100">
+                            <i class="bi bi-eye me-1"></i>View All Students
+                        </a>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="stat-card card h-100 border-0 shadow-sm">
+                    <div class="card-body d-flex align-items-center gap-3">
+                        <div class="stat-icon bg-success-soft"><i class="bi bi-megaphone-fill text-success fs-3"></i></div>
+                        <div>
+                            <p class="text-muted mb-0 small">Active Notices</p>
+                            <h3 class="fw-bold mb-0" th:text="${totalNotices}">0</h3>
+                        </div>
+                    </div>
+                    <div class="card-footer bg-transparent border-0">
+                        <a th:href="@{/notices}" class="btn btn-success btn-sm w-100">
+                            <i class="bi bi-megaphone me-1"></i>View Notices
+                        </a>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="stat-card card h-100 border-0 shadow-sm">
+                    <div class="card-body d-flex align-items-center gap-3">
+                        <div class="stat-icon bg-warning-soft"><i class="bi bi-shield-check-fill text-warning fs-3"></i></div>
+                        <div>
+                            <p class="text-muted mb-0 small">Your Access Level</p>
+                            <h3 class="fw-bold mb-0" th:text="${role}"></h3>
+                        </div>
+                    </div>
+                    <div class="card-footer bg-transparent border-0">
+                        <span class="badge bg-warning text-dark w-100 py-2">Authenticated Session Active</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Charts Row -->
+        <div class="row g-4 mb-4">
+            <div class="col-md-6">
+                <div class="card border-0 shadow-sm">
+                    <div class="card-header bg-transparent fw-semibold border-bottom">
+                        <i class="bi bi-pie-chart-fill me-2 text-primary"></i>Attendance Overview
+                    </div>
+                    <div class="card-body chart-container">
+                        <canvas id="attendanceChart"></canvas>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="card border-0 shadow-sm">
+                    <div class="card-header bg-transparent fw-semibold border-bottom">
+                        <i class="bi bi-bar-chart-fill me-2 text-success"></i>Average Marks by Subject
+                    </div>
+                    <div class="card-body chart-container">
+                        <canvas id="marksChart"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Latest Notices -->
+        <div class="card border-0 shadow-sm mb-4">
+            <div class="card-header bg-transparent fw-semibold border-bottom">
+                <i class="bi bi-megaphone-fill me-2 text-info"></i>Latest Notices
+            </div>
+            <div class="card-body">
+                <div th:if="${#lists.isEmpty(latestNotices)}" class="text-muted text-center py-3">
+                    <i class="bi bi-info-circle me-1"></i>No notices available.
+                </div>
+                <div th:each="notice : ${latestNotices}" class="notice-card p-3 mb-2 rounded border-start border-primary border-3">
+                    <h6 class="fw-bold mb-1" th:text="${notice.title}"></h6>
+                    <p class="text-muted small mb-1" th:text="${#strings.abbreviate(notice.content, 150)}"></p>
+                    <small class="text-muted">
+                        <i class="bi bi-person me-1"></i><span th:text="${notice.postedBy}"></span> ·
+                        <i class="bi bi-clock me-1"></i><span th:text="${#temporals.format(notice.postedAt, 'dd MMM yyyy HH:mm')}"></span>
+                    </small>
+                </div>
+            </div>
+        </div>
+
+        <!-- Quick Actions -->
+        <div class="card border-0 shadow-sm" sec:authorize="hasAnyRole('ADMIN','TEACHER')">
+            <div class="card-header bg-transparent fw-semibold border-bottom">
+                <i class="bi bi-lightning-charge-fill me-2 text-warning"></i>Quick Actions
+            </div>
+            <div class="card-body">
+                <a th:href="@{/students}" class="btn btn-outline-primary me-2"><i class="bi bi-search me-1"></i>Search Students</a>
+                <a th:href="@{/students/add}" class="btn btn-outline-success me-2" sec:authorize="hasRole('ADMIN')"><i class="bi bi-person-plus me-1"></i>Add Student</a>
+                <a th:href="@{/attendance/mark}" class="btn btn-outline-info me-2"><i class="bi bi-calendar-check me-1"></i>Mark Attendance</a>
+                <a th:href="@{/marks/add}" class="btn btn-outline-warning me-2"><i class="bi bi-journal-plus me-1"></i>Add Marks</a>
+                <a th:href="@{/reports}" class="btn btn-outline-danger" sec:authorize="hasRole('ADMIN')"><i class="bi bi-graph-up me-1"></i>View Reports</a>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- Footer -->
+    <footer class="text-center py-3 text-muted small border-top mt-4">
+        © 2025 Student Management System
+    </footer>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+
+    <script th:inline="javascript">
+        // Attendance Doughnut Chart
+        const attLabels = /*[[${attendanceChartLabels}]]*/ '[]';
+        const attData = /*[[${attendanceChartData}]]*/ '[]';
+        new Chart(document.getElementById('attendanceChart'), {
+            type: 'doughnut',
+            data: {
+                labels: JSON.parse(attLabels),
+                datasets: [{
+                    data: JSON.parse(attData),
+                    backgroundColor: ['#16a34a', '#dc2626'],
+                    borderWidth: 2
+                }]
+            },
+            options: { responsive: true, plugins: { legend: { position: 'bottom' } } }
+        });
+
+        // Marks Bar Chart
+        const marksLabels = /*[[${marksChartLabels}]]*/ '[]';
+        const marksData = /*[[${marksChartData}]]*/ '[]';
+        new Chart(document.getElementById('marksChart'), {
+            type: 'bar',
+            data: {
+                labels: JSON.parse(marksLabels),
+                datasets: [{
+                    label: 'Average %',
+                    data: JSON.parse(marksData),
+                    backgroundColor: '#4f46e5',
+                    borderRadius: 6
+                }]
+            },
+            options: {
+                responsive: true,
+                scales: { y: { beginAtZero: true, max: 100 } },
+                plugins: { legend: { display: false } }
+            }
+        });
+    </script>
+</body>
+</html>

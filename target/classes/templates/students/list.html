@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head>
+    <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Student List — Student Management System</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+</head>
+<body class="app-body">
+    <div th:replace="~{fragments/navbar :: navbar}"></div>
+    <div class="container-fluid px-4 py-4">
+        <!-- Flash -->
+        <div th:if="${successMessage}" class="alert alert-success alert-dismissible fade show"><i class="bi bi-check-circle-fill me-2"></i><span th:text="${successMessage}"></span><button type="button" class="btn-close" data-bs-dismiss="alert"></button></div>
+        <div th:if="${errorMessage}" class="alert alert-danger alert-dismissible fade show"><i class="bi bi-exclamation-triangle-fill me-2"></i><span th:text="${errorMessage}"></span><button type="button" class="btn-close" data-bs-dismiss="alert"></button></div>
+
+        <!-- Header -->
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <div>
+                <h4 class="fw-bold mb-0"><i class="bi bi-people-fill me-2 text-primary"></i>Student Records</h4>
+                <p class="text-muted mb-0 small">View and manage all enrolled students</p>
+            </div>
+            <div sec:authorize="hasRole('ADMIN')">
+                <a th:href="@{/students/add}" class="btn btn-primary"><i class="bi bi-person-plus me-1"></i>Add Student</a>
+            </div>
+        </div>
+
+        <!-- Search & Filter -->
+        <div class="card border-0 shadow-sm mb-4">
+            <div class="card-body">
+                <form th:action="@{/students}" method="get" class="row g-2 align-items-center">
+                    <div class="col-md-5">
+                        <div class="input-group">
+                            <span class="input-group-text bg-white"><i class="bi bi-search text-muted"></i></span>
+                            <input type="text" name="search" class="form-control border-start-0" placeholder="Search by name or roll number..." th:value="${keyword}">
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <select name="course" class="form-select">
+                            <option value="">All Courses</option>
+                            <option th:each="c : ${courses}" th:value="${c}" th:text="${c}" th:selected="${c == selectedCourse}"></option>
+                        </select>
+                    </div>
+                    <div class="col-auto">
+                        <button type="submit" class="btn btn-primary"><i class="bi bi-search me-1"></i>Search</button>
+                        <a th:href="@{/students}" class="btn btn-outline-secondary ms-1"><i class="bi bi-x-circle me-1"></i>Clear</a>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <div class="mb-3">
+            <span class="text-muted small"><i class="bi bi-info-circle me-1"></i>Showing <strong th:text="${resultCount}"></strong> result<span th:if="${resultCount != 1}">s</span></span>
+        </div>
+
+        <!-- Table -->
+        <div class="card border-0 shadow-sm">
+            <div class="card-body p-0">
+                <div class="table-responsive">
+                    <table class="table table-striped table-hover table-bordered align-middle mb-0 student-table">
+                        <thead>
+                            <tr>
+                                <th>#</th><th><i class="bi bi-person me-1"></i>Name</th><th><i class="bi bi-hash me-1"></i>Roll No</th>
+                                <th><i class="bi bi-book me-1"></i>Course</th><th><i class="bi bi-envelope me-1"></i>Email</th>
+                                <th><i class="bi bi-telephone me-1"></i>Contact</th>
+                                <th sec:authorize="hasRole('ADMIN')">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr th:each="student, stat : ${students}">
+                                <td class="text-muted" th:text="${stat.index + 1}"></td>
+                                <td>
+                                    <div class="d-flex align-items-center gap-2">
+                                        <div class="avatar-circle"><span th:text="${#strings.substring(student.name, 0, 1).toUpperCase()}"></span></div>
+                                        <a th:href="@{/students/profile/{id}(id=${student.studentId})}" class="fw-semibold text-decoration-none" th:text="${student.name}"></a>
+                                    </div>
+                                </td>
+                                <td><span class="badge bg-light text-dark border" th:text="${student.rollNo}"></span></td>
+                                <td th:text="${student.course}"></td>
+                                <td><span th:text="${student.email}" th:if="${student.email != null}"></span><span th:unless="${student.email != null}" class="text-muted small">N/A</span></td>
+                                <td><span th:text="${student.contact}" th:if="${student.contact != null}"></span><span th:unless="${student.contact != null}" class="text-muted small">N/A</span></td>
+                                <td sec:authorize="hasRole('ADMIN')">
+                                    <a th:href="@{/students/edit/{id}(id=${student.studentId})}" class="btn btn-sm btn-outline-primary me-1" title="Edit"><i class="bi bi-pencil"></i></a>
+                                    <button type="button" class="btn btn-sm btn-outline-danger" data-bs-toggle="modal" th:data-bs-target="'#deleteModal' + ${student.studentId}" title="Delete"><i class="bi bi-trash"></i></button>
+                                    <!-- Delete Modal -->
+                                    <div class="modal fade" th:id="'deleteModal' + ${student.studentId}" tabindex="-1">
+                                        <div class="modal-dialog"><div class="modal-content">
+                                            <div class="modal-header"><h5 class="modal-title">Confirm Delete</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
+                                            <div class="modal-body">Are you sure you want to delete <strong th:text="${student.name}"></strong>? This action cannot be undone.</div>
+                                            <div class="modal-footer">
+                                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                                                <form th:action="@{/students/delete/{id}(id=${student.studentId})}" method="post" class="d-inline">
+                                                    <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}" />
+                                                    <button type="submit" class="btn btn-danger"><i class="bi bi-trash me-1"></i>Delete</button>
+                                                </form>
+                                            </div>
+                                        </div></div>
+                                    </div>
+                                </td>
+                            </tr>
+                            <tr th:if="${#lists.isEmpty(students)}">
+                                <td colspan="7" class="text-center py-5"><div class="text-muted"><i class="bi bi-search fs-1 d-block mb-2"></i><p>No students found.</p><a th:href="@{/students}" class="btn btn-outline-primary btn-sm">Show All</a></div></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+    <footer class="text-center py-3 text-muted small border-top mt-4">© 2025 Student Management System</footer>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

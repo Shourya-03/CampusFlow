@@ -1,0 +1,6 @@
+-- ==========================================
+-- Student Management System - Initial Data
+-- ==========================================
+-- Note: Data is now seeded via DataInitializer.java
+-- This file is kept empty to avoid duplicate inserts.
+-- The DataInitializer handles idempotent user/student/attendance/marks/fee/notice/timetable creation.
