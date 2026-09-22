@@ -271,12 +271,6 @@ Traditional college management systems mainly focus on storing academic informat
 
 The project focuses on understandable business logic and clean Spring Boot MVC development rather than unnecessary architectural complexity.
 
-## Author
-
-**Shourya**
-
-B.Tech Computer Science & Engineering
-
 ## License
 
 This project is created for educational and academic purposes.
